@@ -4,9 +4,9 @@ class SuiteHooks extends Hooks {
     // Use case: hooking 3rd-party macro parsing extensions
 
     static callAllValues(hook, initial, ...args) {
-        if (!hooks.hasOwnProperty(hook)) return initial;
+        if (!this._hooks.hasOwnProperty(hook)) return initial;
         console.log(`${vtt} | Called ${hook} hook`);
-        return hooks[hook].reduce((final, fn) => fn(final, ...args) || final, initial) || initial;
+        return this._hooks[hook].reduce((final, fn) => fn(final, ...args) || final, initial) || initial;
     }
 }
 
@@ -159,12 +159,14 @@ class Macros {
      */
     hookChat() {
         Hooks.on('chatMessage', (chatLog, message, chatData) => {
+            if (this._preventRecursiveMacroCalls) return true;
             const hasMacro = message.match(/\{\{[^\}]+\}\}|\#\{[^\}]+}|\[\[[^\]]+\]\]|\?\{[^\}]+\}|@\{[^\}]+\}/);
             if (hasMacro) {
                 const cTokens = canvas.tokens.controlledTokens;
                 if (cTokens.length === 1) {
                     var actor = game.actors.entities.find(a => a._id === cTokens[0].data.actorId);
                 }
+                this._preventRecursiveMacroCalls = true;
                 this.parseToMessage(chatLog, { type: 'custom', content: message, label: 'Chat Message' }, actor);
                 return false;
             }
@@ -187,6 +189,8 @@ class Macros {
 
             }).catch(error => {
                 ui.notifications.error(error);
+            }).finally(() => {
+                this._preventRecursiveMacroCalls = false;
             });
         });
     }
@@ -824,6 +828,7 @@ class MacroConfig extends Application {
         options.title = "Macro Configuration";
         options.template = CONFIG.Macros.templatePath+CONFIG.Macros.templates.macroConfig;
         options.width = 800;
+        options.height = 600;
         return options;
     }
 
@@ -1584,16 +1589,16 @@ class MacroBar extends Application {
             }
         });
 
-        if (!(this.getData().hasGlobal || this.getData.hasWorld)) $('#macro-bar').hide();
+        if (!(this.getData().hasGlobal || this.getData().hasWorld)) $('#macro-bar').hide();
         // When token is selected, select the corresponding actor tab in the macro bar.
-        canvas.stage.on('mouseup', (ev) => {
+        Hooks.on('controlToken', (ev) => {
             // if (!(ev.target instanceof Token)) { $('#macro-bar').hide(); return; }
             if (canvas.tokens.controlledTokens.length === 1) {
                 const tab = $(`.macro-bar .item[data-tab="${canvas.tokens.controlledTokens[0].data.actorId}"]`);
                 if (tab.length === 0) { $('#macro-bar').hide(); return; }
-                this.macroTabs._activateTab(tab);
+                this.macroTabs.activateTab(tab);
                 $('#macro-bar').show();
-            } else if (!(this.getData().hasGlobal || this.getData.hasWorld)) {
+            } else if (!(this.getData().hasGlobal || this.getData().hasWorld)) {
                 $('#macro-bar').hide();
             }
         });

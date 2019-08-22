@@ -8,7 +8,7 @@ class EnhancementSuite {
 
     constructor() {
         // Register hooks
-        this.hookReady();
+        this.hookInit();
         this.hookToolbar();
         this.hookActorSheet();
         this.hookChat();
@@ -18,8 +18,8 @@ class EnhancementSuite {
     /**
      * Hook into the ready call for the VTT application
      */
-    hookReady() {
-        Hooks.on('ready', () => {
+    hookInit() {
+        Hooks.on('init', () => {
             game.macros = new Macros();
 
             game.settings.register("core", "sheetToolbarCollapsed", {
@@ -665,7 +665,7 @@ class EnhancementSuite {
                     if (!actor) { ui.notifications.error('No actor selected'); return; }
                     let itemId = Number(macro.iid),
                         Item = CONFIG.Item.entityClass,
-                        item = new Item(actor.data.items.find(i => i.id === itemId), actor);
+                        item = new Item(actor.data.items.find(i => i.id === itemId), { actor: actor });
                     game.macros.parse(item.data.data.description.value, actor).then(message => {
                         item.data.data.description.value = message;
                         item.roll();
@@ -676,7 +676,7 @@ class EnhancementSuite {
                     if (!actor) { ui.notifications.error('No actor selected'); return; }
                     let itemId = Number(macro.iid),
                         Item = CONFIG.Item.entityClass,
-                        item = new Item(actor.data.items.find(i => i.id === itemId), actor);
+                        item = new Item(actor.data.items.find(i => i.id === itemId), { actor: actor });
                     game.macros.parse(item.data.data.description.value, actor).then(message => {
                         item.data.data.description.value = message;
                         item.roll();
@@ -687,7 +687,7 @@ class EnhancementSuite {
                     if (!actor) { ui.notifications.error('No actor selected'); return; }
                     let itemId = Number(macro.iid),
                         Item = CONFIG.Item.entityClass,
-                        item = new Item(actor.data.items.find(i => i.id === itemId), actor);
+                        item = new Item(actor.data.items.find(i => i.id === itemId), { actor: actor });
                     game.macros.parse(item.data.data.description.value, actor).then(message => {
                         item.data.data.description.value = message;
                         item.roll();
@@ -698,7 +698,7 @@ class EnhancementSuite {
                     if (!actor) { ui.notifications.error('No actor selected'); return; }
                     let itemId = Number(macro.iid),
                         Item = CONFIG.Item.entityClass,
-                        item = new Item(actor.data.items.find(i => i.id === itemId), actor);
+                        item = new Item(actor.data.items.find(i => i.id === itemId), { actor: actor });
                     game.macros.parse(item.data.data.description.value, actor).then(message => {
                         item.data.data.description.value = message;
                         item.roll();
@@ -710,19 +710,22 @@ class EnhancementSuite {
                     if (macro.subtype === 'prompt') {
                         const dialog = new Dialog({
                             title: "Saving Throw",
-                            content: this.constructor._savesPromptTemplate(CONFIG.EnhancementSuite.settings.dnd5e)
+                            content: this.constructor._savesPromptTemplate(CONFIG.EnhancementSuite.settings.dnd5e),
+                            buttons: {
+                                ok: { label: 'OK' }
+                            }
                         }).render(true);
 
                         setTimeout(() => {
                             Object.keys(CONFIG.EnhancementSuite.dnd5e.abilities).forEach((abl) => {
                                 dialog.element.find('.'+abl).off('click').on('click', () => {
                                     dialog.close();
-                                    actor.rollAbilitySave(abl);
+                                    actor.rollAbilitySave(abl, {event: new KeyboardEvent("")});
                                 });
                             });
                         }, 10);
                     } else {
-                        actor.rollAbilitySave(macro.subtype);
+                        actor.rollAbilitySave(macro.subtype, {event: new KeyboardEvent("")});
                     }
                 }
 
@@ -731,29 +734,30 @@ class EnhancementSuite {
                     if (macro.subtype === 'prompt') {
                         const dialog = new Dialog({
                             title: "Ability Checks",
-                            content: this.constructor._abilitiesPromptTemplate(CONFIG.EnhancementSuite.settings.dnd5e)
+                            content: this.constructor._abilitiesPromptTemplate(CONFIG.EnhancementSuite.settings.dnd5e),
+                            buttons: {}
                         }, { width: 600 }).render(true);
 
                         setTimeout(() => {
                             Object.keys(CONFIG.EnhancementSuite.dnd5e.abilities).forEach((abl) => {
                                 dialog.element.find('.'+abl).off('click').on('click', () => {
                                     dialog.close();
-                                    actor.rollAbilityTest(abl);
+                                    actor.rollAbilityTest(abl, {event: new KeyboardEvent("")});
                                 });
                             });
                             Object.keys(CONFIG.EnhancementSuite.dnd5e.skills).forEach((skl) => {
                                 dialog.element.find('.'+skl).off('click').on('click', () => {
                                     dialog.close();
-                                    actor.rollSkill(skl);
+                                    actor.rollSkill(new KeyboardEvent(""), skl);
                                 });
                             });
                         }, 20);
                     } else {
                         if (Object.keys(CONFIG.EnhancementSuite.dnd5e.abilities).indexOf(macro.subtype) >= 0) {
-                            actor.rollAbilityTest(macro.subtype);
+                            actor.rollAbilityTest(macro.subtype, {event: new KeyboardEvent("")});
                         }
                         if (Object.keys(CONFIG.EnhancementSuite.dnd5e.skills).indexOf(macro.subtype) >= 0) {
-                            actor.rollSkill(macro.subtype);
+                            actor.rollSkill(new KeyboardEvent(""), macro.subtype);
                         }
                     }
                 }
