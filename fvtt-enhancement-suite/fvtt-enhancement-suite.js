@@ -148,13 +148,13 @@ class EnhancementSuite {
      */
     hookMacros() {
         SuiteHooks.on('parseMacrosAfterPrompts', (message, actor) => {
-            if (actor && game.data.system.name === CONFIG.EnhancementSuite.settings.dnd5e) {
+            if (actor && game.system.id === CONFIG.EnhancementSuite.settings.dnd5e) {
                 message = this.parseActor5eData(message, actor.name ? game.actors.entities.find(a => a.data.name === actor.name) : actor);
             }
             return message;
         });
         Hooks.on('preRenderMacroConfig', (app, data) => {
-            if (game.data.system.name === CONFIG.EnhancementSuite.settings.dnd5e) {
+            if (game.system.id === CONFIG.EnhancementSuite.settings.dnd5e) {
                 if(data.scope === 'actor') {
                     const actor = data.actor;
                     const items = duplicate(actor.data.items);
@@ -660,7 +660,7 @@ class EnhancementSuite {
             }
         });
         Hooks.on('triggerMacro', (macro, actor) => {
-            if (game.data.system.name === CONFIG.EnhancementSuite.settings.dnd5e) {
+            if (game.system.id === CONFIG.EnhancementSuite.settings.dnd5e) {
                 if (macro.type === 'weapon') {
                     if (!actor) { ui.notifications.error('No actor selected'); return; }
                     let itemId = Number(macro.iid),
@@ -845,7 +845,7 @@ class EnhancementSuite {
         actorInfo.push({ name: 'name', value: actor.data.name });
         actorInfo = actorInfo.map(field => {
             field.name = field.name.replace(/data\.((details|attributes|resources|spells|traits|abilities)\.)?|\.value/gi, '');
-            if (game.data.system.name === CONFIG.EnhancementSuite.settings.dnd5e) {
+            if (game.system.id === CONFIG.EnhancementSuite.settings.dnd5e) {
                 if (CONFIG.EnhancementSuite.dnd5e.actorDataReplacements[field.name]) {
                     field.name = CONFIG.EnhancementSuite.dnd5e.actorDataReplacements[field.name];
                 }
@@ -854,7 +854,7 @@ class EnhancementSuite {
         }).filter(field => {
             return ['biography', 'speed'].indexOf(field.name) < 0 && field.name.indexOf('skills.') < 0;
         });
-        if (game.data.system.name === CONFIG.EnhancementSuite.settings.dnd5e) {
+        if (game.system.id === CONFIG.EnhancementSuite.settings.dnd5e) {
             actor.data.items.filter(item => item.type === 'class').forEach((item, i) => {
                 actorInfo.push({ name: 'class'+(i+1), value: item.name });
                 actorInfo.push({ name: 'class'+(i+1)+'.subclass', value: item.data.subclass.value });
@@ -979,7 +979,7 @@ class EnhancementSuite {
      */
     getTotalDamageByType(chatCard) {
         let rgx = /(\d+) ?(bludgeoning|piercing|slashing)?/gi;
-        if (game.data.system.name === CONFIG.EnhancementSuite.settings.dnd5e) {
+        if (game.system.id === CONFIG.EnhancementSuite.settings.dnd5e) {
             rgx = /(\d+) ?(acid|bludgeoning|cold|fire|force|lightning|necrotic|piercing|poison|psychic|radiant|slashing|thunder)?/gi;
         }
         let types = [];

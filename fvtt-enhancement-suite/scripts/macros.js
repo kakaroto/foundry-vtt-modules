@@ -52,7 +52,7 @@ class Macros {
      */
     hookReady() {
         Hooks.on('ready', () => {
-            game.settings.register(game.data.system.name, "macros", {
+            game.settings.register(game.system.id, "macros", {
                 name: "Actor Macros",
                 hint: "Actor macros for quick access to chat commands",
                 default: "[]",
@@ -72,7 +72,7 @@ class Macros {
                 }
             });
 
-            this.macros = JSON.parse(game.settings.get(game.data.system.name, "macros"));
+            this.macros = JSON.parse(game.settings.get(game.system.id, "macros"));
             this.optMemory = JSON.parse(game.settings.get('core', 'promptOptionsMemory'));
 
             // Snapshot used to determine actor permissions after actor is deleted.
@@ -96,7 +96,7 @@ class Macros {
 
         Hooks.on('updateActor', actor => {
             this.actors = duplicate(game.actors.source);
-            game.settings.set(game.data.system.name, 'macros', JSON.stringify(this.macros
+            game.settings.set(game.system.id, 'macros', JSON.stringify(this.macros
                 .map(macro => {
                     if (macro.actor) {
                         if (macro.actor.id === actor.data._id) {
@@ -111,7 +111,7 @@ class Macros {
         Hooks.on('deleteActor', id => {
             this.actors.filter(a => a._id === id).forEach(a => {
                 if (!Object.entries(a.permission).find(kv => kv[1] === 3)) {
-                    game.settings.set(game.data.system.name, 'macros', JSON.stringify(this.macros.filter(m => {
+                    game.settings.set(game.system.id, 'macros', JSON.stringify(this.macros.filter(m => {
                         if (macro.actor) {
                             return m.actor.id !== id;
                         } else {
@@ -218,7 +218,7 @@ class Macros {
      * @param macros
      */
     save(macros) {
-        game.settings.set(game.data.system.name, 'macros', JSON.stringify(macros));
+        game.settings.set(game.system.id, 'macros', JSON.stringify(macros));
     }
 
     /**
@@ -797,7 +797,7 @@ class MacroConfig extends Application {
         this.data = {
             windowId: data.windowId || Math.floor(Math.random() * 100000000),
             scope: data.scope || 'global',
-            system: game.data.system.name,
+            system: game.system.id,
             tabs: []
         };
 
