@@ -77,7 +77,7 @@ class Macros {
 
             // Snapshot used to determine actor permissions after actor is deleted.
             // If actor is not owned, stored macros will be removed.
-            this.actors = duplicate(game.actors.source);
+            this.actors = duplicate(game.actors._source);
 
             // Ensure existing macros actor ids match up with current worlds's actors with same name
             this._assignMacros();
@@ -91,11 +91,11 @@ class Macros {
      */
     hookActor() {
         Hooks.on('createActor', actor => {
-            this.actors = duplicate(game.actors.source);
+            this.actors = duplicate(game.actors._source);
         });
 
         Hooks.on('updateActor', actor => {
-            this.actors = duplicate(game.actors.source);
+            this.actors = duplicate(game.actors._source);
             game.settings.set(game.system.id, 'macros', JSON.stringify(this.macros
                 .map(macro => {
                     if (macro.actor) {
@@ -120,7 +120,7 @@ class Macros {
                     })));
                 }
             });
-            this.actors = duplicate(game.actors.source);
+            this.actors = duplicate(game.actors._source);
         });
     }
 
@@ -769,7 +769,7 @@ class Macros {
     _assignMacros(store = true) {
         this.macros = this.macros.filter(macro => macro.label).map((macro, mid) => {
             if (macro.actor) {
-                game.actors.source
+                game.actors._source
                     .filter(a => a.name === macro.actor.name && a._id !== macro.actor.id)
                     .forEach(a => {
                         if (game.user.isGM || Object.keys(a.permission).find(p => p[0] === game.user.data._id && p[1] === 3)) {
